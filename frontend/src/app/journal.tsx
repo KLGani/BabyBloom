@@ -14,7 +14,7 @@ import {
   View,
 } from "react-native";
 import { router, useFocusEffect } from "expo-router";
-import * as SecureStore from "expo-secure-store";
+import * as SecureStore from "../utils/storage";
 import { File } from "expo-file-system";
 import {
   createJournal,

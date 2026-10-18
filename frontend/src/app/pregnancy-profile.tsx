@@ -12,7 +12,7 @@ import {
   View,
 } from "react-native";
 import { router } from "expo-router";
-import * as SecureStore from "expo-secure-store";
+import * as SecureStore from "../utils/storage";
 
 import { createPregnancyProfile } from "../../services/api";
 import { useLanguage } from "../context/LanguageContext";

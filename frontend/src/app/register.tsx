@@ -13,7 +13,7 @@ import {
   View,
 } from "react-native";
 import { router } from "expo-router";
-import * as SecureStore from "expo-secure-store";
+import * as SecureStore from "../utils/storage";
 
 import { registerUser } from "../../services/api";
 import { useLanguage } from "../context/LanguageContext";
@@ -53,46 +53,41 @@ export default function RegisterScreen() {
     }
 
     setLoading(true);
-
-    const result = await registerUser({
-      name: name.trim(),
-      email: email.trim(),
-      phone: phone.trim(),
-      password,
-      language: language,
-      mode: "pregnancy",
-      pregnancyWeek: null,
-    });
-
-    setLoading(false);
-
-    if (!result.success) {
-      Alert.alert(t.error, result.message || "Registration failed");
-      return;
-    }
-
     try {
-      await SecureStore.setItemAsync("authToken", result.token);
-      await SecureStore.setItemAsync(
-        "user",
-        JSON.stringify(result.user)
-      );
+      const result = await registerUser({
+        name: name.trim(),
+        email: email.trim(),
+        phone: phone.trim(),
+        password,
+        language: language,
+        mode: "pregnancy",
+        pregnancyWeek: null,
+      });
 
-      Alert.alert(
-        "Welcome to Little Bloom 🌸",
-        "Your account has been created successfully. Please sign in.",
-        [
-          {
-            text: t.continueBtn,
-            onPress: () => router.replace("/"),
-          },
-        ]
-      );
+      if (!result.success) {
+        Alert.alert(t.error, result.message || "Registration failed");
+        return;
+      }
+
+      if (!result.token || !result.user) {
+        Alert.alert(
+          t.error,
+          "Your account was created, but we could not start your session. Please sign in."
+        );
+        return;
+      }
+
+      await SecureStore.setItemAsync("authToken", result.token);
+      await SecureStore.setItemAsync("user", JSON.stringify(result.user));
+      router.replace("/mode-selection");
     } catch (error) {
+      console.error("Registration error:", error);
       Alert.alert(
         t.error,
-        "Account created, but we could not save your session."
+        "Your account may have been created, but we could not save your session. Please try signing in."
       );
+    } finally {
+      setLoading(false);
     }
   };
 

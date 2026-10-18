@@ -12,7 +12,7 @@ import {
   View,
 } from "react-native";
 import { router } from "expo-router";
-import * as SecureStore from "expo-secure-store";
+import * as SecureStore from "../utils/storage";
 
 import { createChildProfile } from "../../services/api";
 import { useLanguage } from "../context/LanguageContext";
@@ -49,22 +49,30 @@ export default function ChildProfileScreen() {
       return;
     }
 
-    const dateMatch = dateOfBirth.trim().match(/^(\d{2})-(\d{2})-(\d{4})$/);
+    const normalizedDate = dateOfBirth.trim();
+    const dateMatch =
+      normalizedDate.match(/^(\d{2})-(\d{2})-(\d{4})$/) ||
+      normalizedDate.match(/^(\d{4})-(\d{2})-(\d{2})$/);
 
     if (!dateMatch) {
-      Alert.alert(t.error, "Please enter the date in DD-MM-YYYY format.");
+      Alert.alert(t.error, "Please enter the date as DD-MM-YYYY or YYYY-MM-DD.");
       return;
     }
 
-    const [, day, month, year] = dateMatch;
+    const [, first, second, third] = dateMatch;
+    const [year, month, day] =
+      first.length === 4
+        ? [first, second, third]
+        : [third, second, first];
     const parsedDate = new Date(Number(year), Number(month) - 1, Number(day));
 
     if (
       parsedDate.getFullYear() !== Number(year) ||
       parsedDate.getMonth() !== Number(month) - 1 ||
-      parsedDate.getDate() !== Number(day)
+      parsedDate.getDate() !== Number(day) ||
+      parsedDate.getTime() > new Date().setHours(23, 59, 59, 999)
     ) {
-      Alert.alert(t.error, "Please enter a valid calendar date.");
+      Alert.alert(t.error, "Please enter a valid date that is not in the future.");
       return;
     }
 
@@ -96,16 +104,7 @@ export default function ChildProfileScreen() {
       const result = await createChildProfile(token, profileData);
 
       if (result.success) {
-        Alert.alert(
-          t.success + " 🌱",
-          t.growthSaved,
-          [
-            {
-              text: t.continueBtn,
-              onPress: () => router.replace("/dashboard"),
-            },
-          ]
-        );
+        router.replace("/dashboard");
       } else {
         Alert.alert(t.error, result.message || "Something went wrong.");
       }
@@ -144,7 +143,7 @@ export default function ChildProfileScreen() {
 
           <TouchableOpacity
             style={styles.langPill}
-            onPress={() => setShowLangModal(false || true)}
+            onPress={() => setShowLangModal(true)}
             activeOpacity={0.8}
           >
             <Text style={styles.langPillText}>🌐 {language} ▾</Text>

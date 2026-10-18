@@ -13,7 +13,7 @@ import {
   ActivityIndicator,
 } from "react-native";
 import { router } from "expo-router";
-import * as SecureStore from "expo-secure-store";
+import * as SecureStore from "../utils/storage";
 
 import { loginUser } from "../../services/api";
 import { useLanguage, AVAILABLE_LANGUAGES } from "../context/LanguageContext";
@@ -33,29 +33,31 @@ export default function LoginScreen() {
     }
 
     setLoading(true);
-
-    const result = await loginUser(email.trim(), password);
-
-    setLoading(false);
-
-    if (!result.success) {
-      Alert.alert(t.error || "Login failed", result.message);
-      return;
-    }
-
     try {
-      await SecureStore.setItemAsync("authToken", result.token);
-      await SecureStore.setItemAsync(
-        "user",
-        JSON.stringify(result.user)
-      );
+      const result = await loginUser(email.trim(), password);
 
-      router.push("/mode-selection");
+      if (!result.success) {
+        Alert.alert(t.error || "Login failed", result.message);
+        return;
+      }
+
+      if (!result.token || !result.user) {
+        Alert.alert(t.error || "Login failed", "The server returned an invalid session.");
+        return;
+      }
+
+      await SecureStore.setItemAsync("authToken", result.token);
+      await SecureStore.setItemAsync("user", JSON.stringify(result.user));
+
+      router.replace("/mode-selection");
     } catch (error) {
+      console.error("Login session error:", error);
       Alert.alert(
         t.error || "Login error",
-        "Login succeeded, but we could not save your session."
+        "We could not save your login session. Please try again."
       );
+    } finally {
+      setLoading(false);
     }
   };
 

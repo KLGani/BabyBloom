@@ -29,39 +29,55 @@ const getChildProfile = async (req, res) => {
 
 const createChildProfile = async (req, res) => {
   try {
-    const existingProfile = await ChildProfile.findOne({
-      userId: req.userId,
-    });
+    const { childName, dateOfBirth, gender, bloodGroup, height, weight, notes } =
+      req.body;
 
-    if (existingProfile) {
-      return res.status(409).json({
+    if (!childName?.trim() || !dateOfBirth) {
+      return res.status(400).json({
         success: false,
-        message: "Child profile already exists.",
+        message: "Child name and date of birth are required.",
       });
     }
 
-    const profile = await ChildProfile.create({
-      userId: req.userId,
-      childName: req.body.childName,
-      dateOfBirth: req.body.dateOfBirth,
-      gender: req.body.gender,
-      bloodGroup: req.body.bloodGroup,
-      height: req.body.height,
-      weight: req.body.weight,
-      notes: req.body.notes,
-    });
+    const profile = await ChildProfile.findOneAndUpdate(
+      { userId: req.userId },
+      {
+        $set: {
+          childName,
+          dateOfBirth,
+          gender,
+          bloodGroup,
+          height,
+          weight,
+          notes,
+        },
+        $setOnInsert: { userId: req.userId },
+      },
+      {
+        new: true,
+        upsert: true,
+        runValidators: true,
+        setDefaultsOnInsert: true,
+      }
+    );
 
-    res.status(201).json({
+    res.json({
       success: true,
-      message: "Child profile created successfully.",
+      message: "Child profile saved successfully.",
       profile,
     });
   } catch (error) {
     console.error("Create child profile error:", error);
 
-    res.status(500).json({
+    const status = error.name === "ValidationError" || error.name === "CastError"
+      ? 400
+      : 500;
+
+    res.status(status).json({
       success: false,
-      message: "Server error while creating child profile.",
+      message: status === 400
+        ? error.message
+        : "Server error while saving child profile.",
     });
   }
 };

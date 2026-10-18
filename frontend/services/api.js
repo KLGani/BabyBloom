@@ -6,7 +6,13 @@ import Constants from "expo-constants";
 const CURRENT_LAN_IP = "192.168.14.79";
 
 export const getApiUrl = () => {
+  const configuredApiUrl = process.env.EXPO_PUBLIC_API_URL?.trim().replace(/\/+$/, "");
+
   if (Platform.OS === "web") {
+    if (configuredApiUrl) {
+      return configuredApiUrl;
+    }
+
     if (typeof window !== "undefined" && window.location) {
       return `http://${window.location.hostname}:5000/api`;
     }
@@ -27,8 +33,8 @@ export const getApiUrl = () => {
   }
 
   // 2. Explicit environment override if set
-  if (process.env.EXPO_PUBLIC_API_URL) {
-    return process.env.EXPO_PUBLIC_API_URL;
+  if (configuredApiUrl) {
+    return configuredApiUrl;
   }
 
   // 3. Current active machine LAN IP
@@ -51,8 +57,6 @@ export const registerUser = async (userData) => {
     });
 
     const data = await response.json();
-
-    console.log("Registration response:", data);
 
     return data;
   } catch (error) {
@@ -180,8 +184,6 @@ export const createChildProfile = async (token, profileData) => {
 
     const data = await response.json();
 
-    console.log("Child profile response:", data);
-
     return data;
   } catch (error) {
     console.error("Create child profile error:", error);
@@ -203,8 +205,6 @@ export const getChildProfile = async (token) => {
     });
 
     const data = await response.json();
-
-    console.log("Child profile:", data);
 
     return data;
   } catch (error) {
@@ -229,8 +229,6 @@ export const updateChildProfile = async (token, profileData) => {
     });
 
     const data = await response.json();
-
-    console.log("Updated child profile:", data);
 
     return data;
   } catch (error) {
@@ -986,4 +984,3 @@ export const sendChatMessage = async (token, message, language = "English", hist
     };
   }
 };
-

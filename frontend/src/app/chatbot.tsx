@@ -13,7 +13,7 @@ import {
   View,
 } from "react-native";
 import { router } from "expo-router";
-import * as SecureStore from "expo-secure-store";
+import * as SecureStore from "../utils/storage";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { sendChatMessage } from "../../services/api";
 import { useLanguage } from "../context/LanguageContext";

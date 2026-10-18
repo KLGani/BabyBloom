@@ -9,7 +9,7 @@ import {
   View,
 } from "react-native";
 import { router } from "expo-router";
-import * as SecureStore from "expo-secure-store";
+import * as SecureStore from "../utils/storage";
 import { getPregnancyProfile } from "../../services/api";
 import { useLanguage } from "../context/LanguageContext";
 import { SupportedLanguage } from "../i18n/translations";

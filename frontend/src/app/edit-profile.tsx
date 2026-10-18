@@ -11,7 +11,7 @@ import {
   Alert,
 } from "react-native";
 import { router } from "expo-router";
-import * as SecureStore from "expo-secure-store";
+import * as SecureStore from "../utils/storage";
 
 import {
   getPregnancyProfile,

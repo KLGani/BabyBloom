@@ -1,6 +1,6 @@
 
 import * as Notifications from "expo-notifications";
-import * as SecureStore from "expo-secure-store";
+import * as SecureStore from "./storage";
 import { Platform } from "react-native";
 
 const STORAGE_KEY = "littlebloomAppointmentVaccinationReminders";
